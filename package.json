@@ -11,10 +11,10 @@
     "docs:update-package": "npx vp-update"
   },
   "devDependencies": {
-    "@vuepress/bundler-vite": "2.0.0-rc.7",
-    "vue": "^3.4.15",
-    "vuepress": "2.0.0-rc.7",
-    "vuepress-theme-hope": "2.0.0-rc.23"
+    "@vuepress/bundler-vite": "^2.0.0-rc.14",
+    "vue": "^3.5.8",
+    "vuepress": "^2.0.0-rc.14",
+    "vuepress-theme-hope": "^2.0.0-rc.52"
   },
   "dependencies": {
     "markdown-it-plantuml": "^1.4.1"
