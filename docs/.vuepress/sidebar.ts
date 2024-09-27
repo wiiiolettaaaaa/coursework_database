@@ -15,7 +15,8 @@ export default sidebar({
       prefix: "requirements",
       link: "requirements/",
       children: "structure",
-      collapsible: true,
+      collapsible: false,
+      expanded: true,
     },
     {
       text: "Розроблення вимог до функціональної системи",
