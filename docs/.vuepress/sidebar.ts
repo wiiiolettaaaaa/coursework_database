@@ -37,7 +37,7 @@ export default sidebar({
       link: "software/",
     },
     {
-      text: "Тестування процездатності системи",
+      text: "Тестування працездатності системи",
       // icon: "laptop-code",
       prefix: "test/",
       link: "test/",
