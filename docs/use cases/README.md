@@ -1,152 +1,268 @@
-
 # Модель прецедентів
 
-В цьому файлі необхідно перелічити всі документи, розроблені в проекті та дати посилання на них.
+Цей розділ містить загальну діаграму прецедентів, діаграми для кожної категорій користувачів системи та діаграми
+діяльності для кожного сценарію використання
 
-*Модель прецедентів повинна містити загальні оглядові діаграми та специфікації прецедентів.*
+## Загальна діаграма прецедентів
 
-
-
-Вбудовування зображень діаграм здійснюється з використанням сервісу [plantuml.com](https://plantuml.com/). 
-
-В markdown-файлі використовується опис діаграми
-
-```md
-
-<center style="
+<div style="
     border-radius:4px;
     border: 1px solid #cfd7e6;
-    box-shadow: 0 1px 3px 0 rgba(89,105,129,.05), 0 1px 1px 0 rgba(0,0,0,.025);
-    padding: 1em;"
->
+    padding: 1em;">
 
 @startuml
 
-    right header
-        <font size=24 color=black>Package: <b>UCD_3.0
-    end header
+    actor "Користувач" as User #e8e9ff
+    actor "Учасник проєкту" as ProjectMember #e8ffe9
+    actor "Проєктний менеджер" as ProjectManager #ffffe8
+    actor "Адміністратор" as Admin #ffe8e8
 
-    title
-        <font size=18 color=black>UC_8. Редагувати конфігурацію порталу
-        <font size=16 color=black>Діаграма прецедентів
-    end title
+    ProjectMember -u-|> User
+    ProjectManager -u-|> ProjectMember
+    Admin -u-|> ProjectManager
 
+    usecase "Керувати\nакаунтом" as AccountManage #e8e9ff
+    usecase "Надіслати запит\nна приєднання до проєкту" as SendProjectConnectRequest #e8e9ff
+    usecase "Надіслати запит\nадміністратору за підтримкою" as SendHelpRequest #e8e9ff
 
-    actor "Користувач" as User #eeeeaa
-    
-    package UCD_1{
-        usecase "<b>UC_1</b>\nПереглянути список \nзвітів" as UC_1 #aaeeaa
-    }
-    
-    usecase "<b>UC_1.1</b>\nЗастосувати фільтр" as UC_1.1
-    usecase "<b>UC_1.2</b>\nПереглянути метадані \nзвіту" as UC_1.2  
-    usecase "<b>UC_1.2.1</b>\nДати оцінку звіту" as UC_1.2.1  
-    usecase "<b>UC_1.2.2</b>\nПереглянути інформацію \nпро авторів звіту" as UC_1.2.2
-    
-    package UCD_1 {
-        usecase "<b>UC_4</b>\nВикликати звіт" as UC_4 #aaeeaa
-    }
-    
-    usecase "<b>UC_1.1.1</b>\n Використати \nпошукові теги" as UC_1.1.1  
-    usecase "<b>UC_1.1.2</b>\n Використати \nрядок пошуку" as UC_1.1.2
-    usecase "<b>UC_1.1.3</b>\n Використати \nавторів" as UC_1.1.3  
-    
-    
-    
-    User -> UC_1
-    UC_1.1 .u.> UC_1 :extends
-    UC_1.2 .u.> UC_1 :extends
-    UC_4 .d.> UC_1.2 :extends
-    UC_1.2 .> UC_1.2 :extends
-    UC_1.2.1 .u.> UC_1.2 :extends
-    UC_1.2.2 .u.> UC_1.2 :extends
-    UC_1 ..> UC_1.2.2 :extends
-    
-    
-    UC_1.1.1 -u-|> UC_1.1
-    UC_1.1.2 -u-|> UC_1.1
-    UC_1.1.3 -u-|> UC_1.1
-    
-    right footer
-        Аналітичний портал. Модель прецедентів.
-        НТУУ КПІ ім.І.Сікорського
-        Киів-2020
-    end footer
+    User -u-> AccountManage
+    User -l-> SendProjectConnectRequest
+    User -r-> SendHelpRequest
+
+    usecase "Керувати\nзавданнями" as TaskManage #e8ffe9
+    usecase "Вийти\nз проєкту" as LeaveProject #e8ffe9
+
+    SendHelpRequest -d[hidden]-> LeaveProject
+    SendProjectConnectRequest -d[hidden]-> TaskManage
+
+    ProjectMember -l-> TaskManage
+    ProjectMember -r-> LeaveProject
+
+    usecase "Керувати\nпроєктами" as ProjectManage #ffffe8
+    usecase "Керувати\nучасниками проєкту" as ProjectMemberManage #ffffe8
+    usecase "Призначити\nзавдання учаснику" as AssignTask #ffffe8
+    usecase "Отримати\nзвіт про прогрес" as GetProgressReport #ffffe8
+
+    LeaveProject -d[hidden]-> ProjectManage
+    TaskManage -d[hidden]-> GetProgressReport
+
+    ProjectManager -u-> ProjectManage
+    ProjectManager -u-> GetProgressReport
+    ProjectManager -l-> ProjectMemberManage
+    ProjectManager -r-> AssignTask
+
+    usecase "Керувати\nдозволами" as ManagePermissions #ffe8e8
+    usecase "Відповісти\nна запит користувача" as AnswerUserQuestion #ffe8e8
+
+    ProjectMemberManage -d[hidden]-> AnswerUserQuestion
+    ManagePermissions -u[hidden]-> AssignTask
+
+    Admin -r-> ManagePermissions
+    Admin -l-> AnswerUserQuestion
 
 @enduml
 
-**Діаграма прецедентів**
+</div>
 
-</center>
-```
+### Діаграма прецедентів для користувача
 
-яка буде відображена наступним чином
+### Діаграма прецедентів для учасника проєкту
 
-<center style="
+### Діаграма прецедентів для проєктного менеджера
+
+### Діаграма прецедентів для адміністратора
+
+## Сценарії використання
+
+### Створити обліковий запис
+
+| <div style="text-align: left">ID</div> | <div style="text-align: left">`CreateAccount`</div>                                                                                                                                                                                                                                                                            |
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| НАЗВА                                  | Створити обліковий запис                                                                                                                                                                                                                                                                                                       |
+| УЧАСНИКИ                               | Користувач, система                                                                                                                                                                                                                                                                                                            |
+| ПЕРЕДУМОВИ                             | Користувач не має облікового запису в системі                                                                                                                                                                                                                                                                                  |
+| РЕЗУЛЬТАТ                              | Створений обліковий запис користувача                                                                                                                                                                                                                                                                                          |
+| ВИКЛЮЧНІ СИТУАЦІЇ                      | <ul><li>`CreateAccount_AlreadyRegisteredEXC`<br>обліковий запис з таким ім'ям користувача вже зареєстровано</li><li>`CreateAccount_MissingDataEXC`<br>користувач заповнив не всі обов'язкові поля у формі реєстрації</li><li>`CreateAccount_InvalidDataEXC`<br>користувач ввів некоректні дані у реєстраційній формі</li></ul> |
+
+<div style="
     border-radius:4px;
     border: 1px solid #cfd7e6;
-    box-shadow: 0 1px 3px 0 rgba(89,105,129,.05), 0 1px 1px 0 rgba(0,0,0,.025);
-    padding: 1em;"
-    >
+    padding: 1em;">
 
 @startuml
 
-    right header
-        <font size=24 color=black>Package: <b>UCD_3.0
-    end header
+|#e6feff|Користувач|
+start;
+:Натискає кнопку\n"Створити обліковий запис";
 
-    title
-        <font size=18 color=black>UC_8. Редагувати конфігурацію порталу
-        <font size=16 color=black>Діаграма прецедентів
-    end title
+|#e6f3ff|Система|
+:Відкриває сторінку\nз формою реєстрації\nоблікового запису;
 
+|Користувач|
+:Вписує реєстраційні\nдані в поля форми;
+:Натискає кнопку\n"Підтвердити";
 
-    actor "Користувач" as User #eeeeaa
-    
-    package UCD_1{
-        usecase "<b>UC_1</b>\nПереглянути список \nзвітів" as UC_1 #aaeeaa
-    }
-    
-    usecase "<b>UC_1.1</b>\nЗастосувати фільтр" as UC_1.1
-    usecase "<b>UC_1.2</b>\nПереглянути метадані \nзвіту" as UC_1.2  
-    usecase "<b>UC_1.2.1</b>\nДати оцінку звіту" as UC_1.2.1  
-    usecase "<b>UC_1.2.2</b>\nПереглянути інформацію \nпро авторів звіту" as UC_1.2.2
-    
-    package UCD_1 {
-        usecase "<b>UC_4</b>\nВикликати звіт" as UC_4 #aaeeaa
-    }
-    
-    usecase "<b>UC_1.1.1</b>\n Використати \nпошукові теги" as UC_1.1.1  
-    usecase "<b>UC_1.1.2</b>\n Використати \nрядок пошуку" as UC_1.1.2
-    usecase "<b>UC_1.1.3</b>\n Використати \nавторів" as UC_1.1.3  
-    
-    
-    
-    User -> UC_1
-    UC_1.1 .u.> UC_1 :extends
-    UC_1.2 .u.> UC_1 :extends
-    UC_4 .d.> UC_1.2 :extends
-    UC_1.2 .> UC_1.2 :extends
-    UC_1.2.1 .u.> UC_1.2 :extends
-    UC_1.2.2 .u.> UC_1.2 :extends
-    UC_1 ..> UC_1.2.2 :extends
-    
-    
-    UC_1.1.1 -u-|> UC_1.1
-    UC_1.1.2 -u-|> UC_1.1
-    UC_1.1.3 -u-|> UC_1.1
-    
-    right footer
-        Аналітичний портал. Модель прецедентів.
-        НТУУ КПІ ім.І.Сікорського
-        Киів-2020
-    end footer
+|Система|
+
+:Отримує запит на реєстрацію\nта дані реєстраційної форми;
+:Перевіряє коректність\nданих, отриманих з\nреєстраційної форми користувача;
+
+note right #ffb3b3
+CreateAccount_MissingDataEXC
+CreateAccount_InvalidDataEXC
+end note
+
+:Перевіряє ім'я\nкористувача на унікальність;
+
+note right #ffb3b3
+CreateAccount_AlreadyRegisteredEXC
+end note
+
+:Створює новий обліковий запис;
+:Повідомляє користувача про\nуспішне створення та вхід\nв обліковий запис;
+
+|Користувач|
+:Завершує взаємодію\nз системою;
+stop;
 
 @enduml
 
+</div>
 
+### Увійти в обліковий запис
 
-**Діаграма прецедентів**
+| <div style="text-align: left">ID</div> | <div style="text-align: left">`Login`</div>                                                                                                                                                                                                                        |
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| НАЗВА                                  | Увійти в обліковий запис                                                                                                                                                                                                                                           |
+| УЧАСНИКИ                               | Користувач, система                                                                                                                                                                                                                                                |
+| ПЕРЕДУМОВИ                             | Користувач має обліковий запис в системі                                                                                                                                                                                                                           |
+| РЕЗУЛЬТАТ                              | Вхід в обліковий запис користувача                                                                                                                                                                                                                                 |
+| ВИКЛЮЧНІ СИТУАЦІЇ                      | <ul><li>`Login_NotRegisteredEXC`<br>обліковий запис з таким ім'ям користувача не зареєстровано</li><li>`Login_MissingDataEXC`<br>користувач заповнив не всі поля у формі входу</li><li>`Login_InvalidPasswordEXC`<br>користувач ввів неправильний пароль</li></ul> |
 
-</center>
+<div style="
+    border-radius:4px;
+    border: 1px solid #cfd7e6;
+    padding: 1em;">
 
+@startuml
+
+|#e6feff|Користувач|
+start;
+:Натискає на кнопку "Вхід";
+
+|#e6f3ff|Система|
+:Відкриває сторінку з формою\nвходу в обліковий запис;
+
+|Користувач|
+:Вводить ім'я користувача та пароль;
+:Натискає кнопку "Увійти";
+
+|Система|
+:Перевіряє існування облікового\nзапису та коректність введених даних;
+
+note right #ffb3b3
+Login_NotRegisteredEXC
+Login_MissingDataEXC
+Login_InvalidPasswordEXC
+end note
+
+:Авторизує користувача;
+:Перенаправляє користувача\nна головну сторінку;
+
+|Користувач|
+:Завершує взаємодію з системою;
+stop;
+
+@enduml
+
+</div>
+
+### Редагувати дані облікового запису
+
+| <div style="text-align: left">ID</div> | <div style="text-align: left">`EditProfile`</div>                                                                                                                                                        |
+|----------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| НАЗВА                                  | Редагувати дані в облікового запису                                                                                                                                                                      |
+| УЧАСНИКИ                               | Користувач, система                                                                                                                                                                                      |
+| ПЕРЕДУМОВИ                             | <ul><li>Користувач має обліковий запис в системі</li><li>Користувач увійшов в обліковий запис</li></ul>                                                                                                  |
+| РЕЗУЛЬТАТ                              | Змінені дані облікового запису                                                                                                                                                                           |
+| ВИКЛЮЧНІ СИТУАЦІЇ                      | <ul><li>`EditProfile_MissingDataEXC`<br>користувач змінив значення якогось із полів на порожній рядок</li><li>`EditProfile_InvalidDataEXC`<br>користувач ввів некоректні дані для деяких полів</li></ul> |
+
+<div style="
+    border-radius:4px;
+    border: 1px solid #cfd7e6;
+    padding: 1em;">
+
+@startuml
+
+|#e6feff|Користувач|
+start;
+:Натискає кнопку\n"Редагувати профіль";
+
+|#e6f3ff|Система|
+:Відкриває сторінку\nредагування профілю;
+
+|Користувач|
+:Змінює дані в будь-якому з полів;
+:Натискає кнопку "Зберегти";
+
+|Система|
+:Перевіряє коректність\nданих, які були змінені;
+
+note right #ffb3b3
+EditProfile_MissingDataEXC
+EditProfile_InvalidDataEXC
+end note
+
+:Зберігає дані, змінені користувачем;
+
+|Користувач|
+:Завершує взаємодію з системою;
+stop;
+
+@enduml
+
+</div>
+
+### Видалити обліковий запис
+
+| <div style="text-align: left">ID</div> | <div style="text-align: left">`DeleteAccount`</div>                                                     |
+|----------------------------------------|---------------------------------------------------------------------------------------------------------|
+| НАЗВА                                  | Видалити обліковий запис                                                                                |
+| УЧАСНИКИ                               | Користувач, система                                                                                     |
+| ПЕРЕДУМОВИ                             | <ul><li>Користувач має обліковий запис в системі</li><li>Користувач увійшов в обліковий запис</li></ul> |
+| РЕЗУЛЬТАТ                              | Видалений обліковий запис                                                                               |
+| ВИКЛЮЧНІ СИТУАЦІЇ                      | <ul><li>`DeleteAccount_InvalidPasswordEXC`<br>користувач ввів неправильний пароль</li></ul>             |
+
+<div style="
+    border-radius:4px;
+    border: 1px solid #cfd7e6;
+    padding: 1em;">
+
+@startuml
+
+|#e6feff|Користувач|
+start;
+:Натискає кнопку\n"Видалити обліковий запис";
+
+|#e6f3ff|Система|
+:Відкриває сторінку\nз полем для введення пароля;
+
+|Користувач|
+:Вводить пароль;
+
+|Система|
+:Перевіряє правильність пароля;
+
+note right #ffb3b3
+DeleteAccount_InvalidPasswordEXC
+end note
+
+:Повідомляє про успішне\nвидалення облікового запису;
+
+|Користувач|
+:Завершує взаємодію з системою;
+stop;
+
+@enduml
+
+</div>
