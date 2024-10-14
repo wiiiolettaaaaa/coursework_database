@@ -41,21 +41,16 @@
     usecase "Керувати\nпроєктами" as ProjectManage #ffffe8
     usecase "Керувати\nучасниками проєкту" as ProjectMemberManage #ffffe8
     usecase "Призначити\nзавдання учаснику" as AssignTask #ffffe8
-    usecase "Отримати\nзвіт про прогрес" as GetProgressReport #ffffe8
 
     LeaveProject -d[hidden]-> ProjectManage
-    TaskManage -d[hidden]-> GetProgressReport
+    ProjectMemberManage -u[hidden]-> TaskManage
 
     ProjectManager -u-> ProjectManage
-    ProjectManager -u-> GetProgressReport
     ProjectManager -l-> ProjectMemberManage
     ProjectManager -r-> AssignTask
 
     usecase "Керувати\nдозволами" as ManagePermissions #ffe8e8
     usecase "Відповісти\nна запит користувача" as AnswerUserQuestion #ffe8e8
-
-    ProjectMemberManage -d[hidden]-> AnswerUserQuestion
-    ManagePermissions -u[hidden]-> AssignTask
 
     Admin -r-> ManagePermissions
     Admin -l-> AnswerUserQuestion
