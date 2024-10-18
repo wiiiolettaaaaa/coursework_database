@@ -61,6 +61,37 @@
 
 ### Діаграма прецедентів для користувача
 
+<div style="
+    border-radius:4px;
+    border: 1px solid #cfd7e6;
+    padding: 1em;">
+
+@startuml
+
+    actor "Користувач" as User #e8e9ff
+
+    usecase "Керувати\nакаунтом" as AccountManage #e8e9ff
+    usecase "Надіслати запит\nна приєднання до проєкту" as SendProjectConnectRequest #e8e9ff
+    usecase "Надіслати запит\nадміністратору за підтримкою" as SendHelpRequest #e8e9ff
+    
+    User -u-> AccountManage
+    User -l-> SendProjectConnectRequest
+    User -r-> SendHelpRequest
+    
+    usecase "Створити\nакаунт" as CreateAccount
+    usecase "Увійти\nв акаунт" as LogInAccount
+    usecase "Редагувати\nдані акаунту" as EditAccount
+    usecase "Видалити\nакаунт" as DeleteAccount
+    
+    AccountManage <.u. CreateAccount : extends
+    AccountManage <.u. LogInAccount : extends
+    AccountManage <.u. EditAccount : extends
+    AccountManage <.u. DeleteAccount : extends
+
+@enduml
+
+</div>
+
 ### Діаграма прецедентів для учасника проєкту
 
 <div style="
@@ -335,6 +366,104 @@ stop;
 
 </div>
 
+### Надіслати запит на приєднання до проєкту
+
+| <div style="text-align: left">ID</div> | <div style="text-align: left">`JoinProjectRequest`</div>                                                                                             |
+|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| НАЗВА                                  | Надіслати запит на приєднання до проєкту                                                                                                             |
+| УЧАСНИКИ                               | Користувач, система                                                                                                                                  |
+| ПЕРЕДУМОВИ                             | <ul><li>Користувач має обліковий запис в системі</li><li>Користувач увійшов в обліковий запис</li></ul>                                              |
+| РЕЗУЛЬТАТ                              | Запит на приєднання до обраного проєкту надіслано                                                                                                    |
+| ВИКЛЮЧНІ СИТУАЦІЇ                      | <ul><li>`JoinProject_AlreadyMemberEXC`<br>Користувач вже є учасником проєкту</li><li>`JoinProject_RequestExistsEXC`<br>Запит уже надіслано</li></ul> |
+
+<div style="
+    border-radius:4px;
+    border: 1px solid #cfd7e6;
+    padding: 1em;">
+
+@startuml
+
+|#e6feff|Користувач|
+start;
+:Натискає на кнопку "Проєкти";
+
+|#e6f3ff|Система|
+:Відображає список доступних проєктів;
+
+|Користувач|
+:Обирає проєкт та\nнатискає "Приєднатися";
+
+|Система|
+:Перевіряє, чи не є\nкористувач уже учасником;
+
+note right #ffb3b3
+JoinProject_AlreadyMemberEXC
+end note
+
+:Перевіряє, чи не існує вже запиту;
+
+note right #ffb3b3
+JoinProject_RequestExistsEXC
+end note
+
+:Надсилає запит на приєднання\nдо проєкту;
+
+|Користувач|
+:Отримує повідомлення про успішне\nнадсилання запиту або помилку;
+
+:Завершує взаємодію з системою;
+stop;
+
+@enduml
+
+</div>
+
+### Надіслати запит адміністратору за підтримкою
+
+| <div style="text-align: left">ID</div> | <div style="text-align: left">`SupportRequest`</div>                           |
+|----------------------------------------|--------------------------------------------------------------------------------|
+| НАЗВА                                  | Надіслати запит адміністратору за підтримкою                                   |
+| УЧАСНИКИ                               | Користувач, система                                                            |
+| ПЕРЕДУМОВИ                             | Користувач має обліковий запис у системі                                       |
+| РЕЗУЛЬТАТ                              | Запит надісланий адміністратору                                                |
+| ВИКЛЮЧНІ СИТУАЦІЇ                      | `SupportRequest_MissingDataEXC`<br>Користувач не заповнив усі обов'язкові поля |
+
+<div style="
+    border-radius:4px;
+    border: 1px solid #cfd7e6;
+    padding: 1em;">
+
+@startuml
+
+|#e6feff|Користувач|
+start;
+:Натискає на кнопку "Підтримка";
+
+|#e6f3ff|Система|
+:Відображає форму для запиту\nна підтримку;
+
+|Користувач|
+:Заповнює поля запиту та\nнатискає "Надіслати";
+
+|Система|
+:Перевіряє, чи всі поля заповнено;
+
+note right #ffb3b3
+SupportRequest_MissingDataEXC
+end note
+
+:Надсилає запит адміністратору;
+
+|Користувач|
+:Отримує підтвердження про\nуспішне надсилання запиту;
+
+:Завершує взаємодію з системою;
+stop;
+
+@enduml
+
+</div>
+
 ### Створити завдання
 
 | <div style="text-align: left">ID</div> | <div style="text-align: left">`CreateTask`</div>                                                                                                                                                                                                                                        |
@@ -376,7 +505,6 @@ note right #ffb3b3
 CreateTask_MissingDataEXC
 CreateTask_InvalidDataEXC
 end note
-
 
 :Створює і відображає завдання ;
 
@@ -453,7 +581,6 @@ stop;
 | РЕЗУЛЬТАТ                              | Завдання відредаговане                                                                                                                                                                                                                                         |
 | ВИКЛЮЧНІ СИТУАЦІЇ                      | <ul><li>`EditTask_AccessDeniedEXC`<br>учасник проєкту не має прав на редагування завдання</li><li>`EditTask_MissingDataEXC`<br>учасник проєкту не заповнив необхідні поля</li><li>`EditTask_InvalidDataEXC`<br>учасник проєкту надав некортені дані </li></ul> |
 
-
 <div style="
     border-radius:4px;
     border: 1px solid #cfd7e6;
@@ -498,12 +625,12 @@ stop;
 
 ### Видалити завдання
 
-| <div style="text-align: left">ID</div> | <div style="text-align: left">`DeleteTask`</div>                                      |
-|----------------------------------------|---------------------------------------------------------------------------------------|
-| НАЗВА                                  | Видалити завдання                                                                     |
-| УЧАСНИКИ                               | Учасник проєкту, система                                                              |
+| <div style="text-align: left">ID</div> | <div style="text-align: left">`DeleteTask`</div>                                       |
+|----------------------------------------|----------------------------------------------------------------------------------------|
+| НАЗВА                                  | Видалити завдання                                                                      |
+| УЧАСНИКИ                               | Учасник проєкту, система                                                               |
 | ПЕРЕДУМОВИ                             | <ul><li>Учасник проєкту авторизований</li><li>Учасник проєкту обрав завдання</li></ul> |
-| РЕЗУЛЬТАТ                              | Завдання видалене                                                                     |
+| РЕЗУЛЬТАТ                              | Завдання видалене                                                                      |
 | ВИКЛЮЧНІ СИТУАЦІЇ                      | `DeleteTask_AccessDeniedEXC`<br>учасник проєкту не має прав на видалення завдання      |
 
 <div style="
