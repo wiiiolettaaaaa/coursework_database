@@ -14,6 +14,7 @@ left to right direction
     entity User.first_name #ffe699
     entity User.last_name #ffe699
     entity User.avatar #ffe699
+    entity User.blocked #ffe699
 
     User.id -d-* User
     User.username -d-* User
@@ -21,7 +22,8 @@ left to right direction
     User.email -d-* User
     User.first_name -d-* User
     User.last_name -d-* User
-    User.avatar  --* User
+    User.avatar --* User
+    User.blocked --* User
 
 
     entity Grant #a64dff
@@ -49,7 +51,7 @@ left to right direction
     entity ProjectMember #a6ff4d
     entity ProjectMember.id #d9ffb3
 
-    ProjectMember.id -r-* ProjectMember
+    ProjectMember.id --* ProjectMember
 
 
     entity Project #4dff79
@@ -76,14 +78,35 @@ left to right direction
     Task.status -d-* Task
     Task.deadline -d-* Task
 
+
+    entity TaskComment #4d4dff
+    entity TaskComment.id #b3b3ff
+    entity TaskComment.text #b3b3ff
+
+    TaskComment.id --* TaskComment
+    TaskComment.text --* TaskComment
+
+
+    entity Assignment #4dff6b
+    entity Assignment.id #b3ffc0
+
+    Assignment.id -l-* Assignment
+
+
+    entity ConnectToProjectRequest #e1ff4d
+    entity ConnectToProjectRequest.id #f2ffb3
+
+    ConnectToProjectRequest.id --* ConnectToProjectRequest
+
+
     entity SupportRequest #ff4dd3
     entity SupportRequest.id #ffb3ec
     entity SupportRequest.description #ffb3ec
     entity SupportRequest.topic #ffb3ec
 
-    SupportRequest.id -u-* SupportRequest
-    SupportRequest.topic -u-* SupportRequest
-    SupportRequest.description -u-* SupportRequest
+    SupportRequest.id -d-* SupportRequest
+    SupportRequest.topic -d-* SupportRequest
+    SupportRequest.description -d-* SupportRequest
 
     entity SupportRequestAnswer #ff4d4d
     entity SupportRequestAnswer.id #ffb3b3
@@ -92,18 +115,31 @@ left to right direction
     SupportRequestAnswer.id -d-* SupportRequestAnswer
     SupportRequestAnswer.feedback -d-* SupportRequestAnswer
 
-    User "1,1" -d-- "0,*" ProjectMember
-    Grant "1,1" -r- "0,*" Role
+    User "1,1" -- "0,*" ProjectMember
+    Role "1,1" -l- "0,*" Grant
 
-    ProjectMemberRole "0,*" -l-- "1,1" Role
-    ProjectMemberRole "0,*" -u-- "1,1" ProjectMember
-    ProjectMember "0,*" -u-- "1,1" Project
-    Project "1,1" -u-- "0,*" Task
-    Task -l[hidden]-> User
-    SupportRequest.topic -l[hidden]-> Project.status
+    ProjectMemberRole "0,*" -u- "1,1" Role
+    ProjectMemberRole "0,*" -r- "1,1" ProjectMember
+    Role "0,*" -u- "1,1" Project
+    ProjectMember "0,*" -u- "1,1" Project
+    Project "1,1" -u- "0,*" Task
+    TaskComment "0,*" -- "1,1" Task
+    Task "1,1" -- "0,*" Assignment
+    ProjectMember "1,1" -r- "0,*" Assignment
+    ConnectToProjectRequest "0,*" -l- "1,1" User
+    ConnectToProjectRequest "0,*" --- "1,1" Project
 
-    SupportRequest "0,*" -r-- "1,1" User
-    SupportRequestAnswer "0,*" -r-- "0,1" SupportRequest
+    SupportRequest "0,*" -r- "1,1" User
+    SupportRequestAnswer "0,*" -r- "1,1" SupportRequest
+
+    ConnectToProjectRequest -r[hidden]- Project
+    User  -r[hidden]-  Project
+    Task  -r[hidden]-  Project
+    Role  -u[hidden]-  Project
+    Assignment  -u[hidden]-  TaskComment
+    Grant -u[hidden]--- SupportRequestAnswer
+    ConnectToProjectRequest -[hidden]- Project
+    TaskComment -[hidden]- Task
 
 @enduml
 
