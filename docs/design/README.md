@@ -145,5 +145,72 @@ left to right direction
 
 ## ER-модель
 
+@startuml
+
+entity User {
++id: uuid
++username: text
++password: text
++email: text
++first_name: text
++last_name: text
++avatar: text
++blocked: bool
+}
+
+entity SupportRequest {
++id: uuid
++user_id: uuid
++topic: text
++description: text
+}
+
+entity SupportRequestAnswer {
++id: uuid
++support_request_id: uuid
++feedback: text
+}
+
+entity ConnectToProjectRequest {
++id: uuid
++user_id: uuid
+}
+
+entity ProjectMember {
++id: uuid
++user_id: uuid
+}
+
+entity ProjectMemberRole {
++id: uuid
++project_member_id: uuid
+}
+
+entity Role {
++id: uuid
++project_member_role_id: uuid
++name: text
+}
+
+entity Grant {
++id: uuid
++role_id: uuid
++permission: text
+}
+
+User "1,1" --d- "0,*" SupportRequest
+User "1,1" --d- "0,*" ConnectToProjectRequest
+User "1,1" --d- "0,*" ProjectMember
+
+SupportRequest "1,1" --d- "0,*" SupportRequestAnswer
+
+ProjectMember "1,1" --d- "0,*" ProjectMemberRole
+
+ProjectMemberRole "0,*" --d- "1,1" Role
+
+Role "1,1" --d- "0,*" Grant
+
+@enduml
+
 ## Реляційна схема
 
