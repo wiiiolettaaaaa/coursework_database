@@ -128,18 +128,23 @@ left to right direction
     ProjectMember "1,1" -r- "0,*" Assignment
     ConnectToProjectRequest "0,*" -l- "1,1" User
     ConnectToProjectRequest "0,*" --- "1,1" Project
+    TaskComment "0,*" -d- "1,1" ProjectMember
 
     SupportRequest "0,*" -r- "1,1" User
     SupportRequestAnswer "0,*" -r- "1,1" SupportRequest
 
-    ConnectToProjectRequest -r[hidden]- Project
+    ConnectToProjectRequest -[hidden]- Project
+    ConnectToProjectRequest -[hidden]- Project
+    ConnectToProjectRequest -[hidden]- Project
+    ConnectToProjectRequest -[hidden]- Project
+    ConnectToProjectRequest -[hidden]- Task
     User  -r[hidden]-  Project
-    Task  -r[hidden]-  Project
     Role  -u[hidden]-  Project
     Assignment  -u[hidden]-  TaskComment
     Grant -u[hidden]--- SupportRequestAnswer
-    ConnectToProjectRequest -[hidden]- Project
     TaskComment -[hidden]- Task
+    TaskComment -[hidden]- Task
+    TaskComment ---[hidden]- Assignment
 
 @enduml
 
@@ -174,21 +179,24 @@ entity SupportRequestAnswer {
 entity ConnectToProjectRequest {
 +id: uuid
 +user_id: uuid
++project_id: uuid
 }
 
 entity ProjectMember {
 +id: uuid
++project_id: uuid
 +user_id: uuid
 }
 
 entity ProjectMemberRole {
 +id: uuid
 +project_member_id: uuid
++role_id: uuid
 }
 
 entity Role {
 +id: uuid
-+project_member_role_id: uuid
++project_id: uuid
 +name: text
 }
 
@@ -198,6 +206,35 @@ entity Grant {
 +permission: text
 }
 
+entity Project {
++id: uuid
++status: text
++name: text
++description: text
+}
+
+entity Task {
++id: uuid
++project_id: uuid
++name: text
++description: text
++status: text
++deadline: date
+}
+
+entity TaskComment {
++id: uuid
++task_id: uuid
++project_member_id: uuid
++text: text
+}
+
+entity Assignment {
++id: uuid
++task_id: uuid
++project_member_id: uuid
+}
+
 User "1,1" --d- "0,*" SupportRequest
 User "1,1" --d- "0,*" ConnectToProjectRequest
 User "1,1" --d- "0,*" ProjectMember
@@ -205,10 +242,20 @@ User "1,1" --d- "0,*" ProjectMember
 SupportRequest "1,1" --d- "0,*" SupportRequestAnswer
 
 ProjectMember "1,1" --d- "0,*" ProjectMemberRole
+ProjectMember "1,1" --d- "0,*" Assignment
 
 ProjectMemberRole "0,*" --d- "1,1" Role
 
 Role "1,1" --d- "0,*" Grant
+
+Project "1,1"  --d- "0,*" ProjectMember
+Project "1,1"  --d- "0,*" Role
+Project "1,1"  --d- "0,*" ConnectToProjectRequest
+Project "1,1"  --d- "0,*" Task
+
+Task "1,1" --d- "0,*" TaskComment
+Task "1,1" --d- "0,*" Assignment
+TaskComment "0,*" --u- "1,1" ProjectMember
 
 @enduml
 
