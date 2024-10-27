@@ -261,4 +261,4 @@ TaskComment "0,*" --u- "1,1" ProjectMember
 
 ## Реляційна схема
 
-![relational schema.png](..%2F..%2F..%2F..%2Frelational%20schema.png)
+![relational schema](https://github.com/user-attachments/assets/eb491cc4-d032-4143-b04c-443fa8e978e5)
