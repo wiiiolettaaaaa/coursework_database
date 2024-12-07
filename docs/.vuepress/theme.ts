@@ -11,7 +11,7 @@ export default hopeTheme({
 
   editLink: false,
   // Замінити на назву свого репозиторія
-  repo: "wiiiollettaaaaa/coursework_database",
+  repo: "wiiiolettaaaaa/coursework_database",
 
   docsDir: "docs",
   // navbar
