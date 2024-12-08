@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id                       String                    @id @default(uuid())
+  status                   String                    @db.VarChar(255)
+  name                     String                    @db.VarChar(255)
+  description              String                    @db.MediumText
+  projectMembers           ProjectMember[]
+  tasks                    Task[]
+  connectToProjectRequests ConnectToProjectRequest[]
+  roles                    Role[]
+
+  @@map("project")
+}
+
+model ProjectMember {
+  id                 String              @id @default(uuid())
+  project            Project             @relation(fields: [projectId], references: [id])
+  projectId          String              @map("project_id")
+  user               User                @relation(fields: [userId], references: [id])
+  userId             String              @map("user_id")
+  assignments        Assignment[]
+  projectMemberRoles ProjectMemberRole[]
+  taskComments       TaskComment[]
+
+  @@map("project_member")
+}
+
+model Task {
+  id           String        @id @default(uuid())
+  name         String        @db.VarChar(255)
+  description  String        @db.MediumText
+  status       String        @db.VarChar(255)
+  deadline     DateTime?     @db.DateTime(0)
+  project      Project       @relation(fields: [projectId], references: [id])
+  projectId    String        @map("project_id")
+  assignments  Assignment[]
+  taskComments TaskComment[]
+
+  @@map("task")
+}
+
+model TaskComment {
+  id              String        @id @default(uuid())
+  text            String        @db.MediumText
+  task            Task          @relation(fields: [taskId], references: [id])
+  taskId          String        @map("task_id")
+  projectMember   ProjectMember @relation(fields: [projectMemberId], references: [id])
+  projectMemberId String        @map("project_member_id")
+
+  @@map("task_comment")
+}
+
+model User {
+  id                       String                    @id @default(uuid())
+  username                 String                    @db.VarChar(255)
+  password                 String                    @db.VarChar(255)
+  email                    String                    @db.VarChar(320)
+  firstName                String                    @map("first_name") @db.VarChar(255)
+  lastName                 String                    @map("last_name") @db.VarChar(255)
+  avatar                   String?                   @db.MediumText
+  blocked                  Boolean                   @default(dbgenerated("b'0'")) @db.Bit(1)
+  projectMembers           ProjectMember[]
+  supportRequests          SupportRequest[]
+  connectToProjectRequests ConnectToProjectRequest[]
+
+  @@map("user")
+}
+
+model Assignment {
+  id              String        @id @default(uuid())
+  task            Task          @relation(fields: [taskId], references: [id])
+  taskId          String        @map("task_id")
+  projectMember   ProjectMember @relation(fields: [projectMemberId], references: [id])
+  projectMemberId String        @map("project_member_id")
+
+  @@map("assignment")
+}
+
+model SupportRequest {
+  id                     String                 @id @default(uuid())
+  user                   User                   @relation(fields: [userId], references: [id])
+  userId                 String                 @map("user_id")
+  topic                  String                 @db.VarChar(255)
+  description            String                 @db.MediumText
+  supportRequestsAnswers SupportRequestAnswer[]
+
+  @@map("suport_request")
+}
+
+model SupportRequestAnswer {
+  id               String         @id @default(uuid())
+  feedback         String         @db.MediumText
+  supportRequest   SupportRequest @relation(fields: [supportRequestId], references: [id])
+  supportRequestId String         @map("support_request_id")
+
+  @@map("support_request_answer")
+}
+
+model ConnectToProjectRequest {
+  id        String  @id @default(uuid())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @map("user_id")
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String  @map("project_id")
+
+  @@map("connect_to_project_request")
+}
+
+model Role {
+  id                 String              @id @default(uuid())
+  name               String              @db.VarChar(255)
+  project            Project             @relation(fields: [projectId], references: [id])
+  projectId          String              @map("project_id")
+  projectMemberRoles ProjectMemberRole[]
+  grants             Grant[]
+
+  @@map("role")
+}
+
+model ProjectMemberRole {
+  id              String        @id @default(uuid())
+  role            Role          @relation(fields: [roleId], references: [id])
+  roleId          String        @map("role_id")
+  projectMember   ProjectMember @relation(fields: [projectMemberId], references: [id])
+  projectMemberId String        @map("project_member_id")
+
+  @@map("project_member_role")
+}
+
+model Grant {
+  id         String @id @default(uuid())
+  permission String @db.VarChar(255)
+  role       Role   @relation(fields: [roleId], references: [id])
+  roleId     String @map("role_id")
+
+  @@map("grant")
+}
