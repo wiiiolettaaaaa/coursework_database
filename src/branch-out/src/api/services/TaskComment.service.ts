@@ -5,25 +5,25 @@ import { UpdateTaskCommentDto } from '../dtos/UpdateTaskComment.dto';
 
 @Injectable()
 export class TaskCommentService {
-    constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-    getAll() {
-        return this.prisma.taskComment.findMany();
-    }
+  getAll() {
+    return this.prisma.taskComment.findMany();
+  }
 
-    getById(id: string) {
-        return this.prisma.taskComment.findUnique({ where: { id } });
-    }
+  getById(id: string) {
+    return this.prisma.taskComment.findUnique({ where: { id } });
+  }
 
-    create(data: CreateTaskCommentDto) {
-        return this.prisma.taskComment.create({ data });
-    }
+  create(data: CreateTaskCommentDto) {
+    return this.prisma.taskComment.create({ data });
+  }
 
-    updateById(id: string, data: UpdateTaskCommentDto) {
-        return this.prisma.taskComment.update({ where: { id }, data });
-    }
+  updateById(id: string, data: UpdateTaskCommentDto) {
+    return this.prisma.taskComment.update({ where: { id }, data });
+  }
 
-    deleteById(id: string) {
-        return this.prisma.taskComment.delete({ where: { id } });
-    }
+  deleteById(id: string) {
+    return this.prisma.taskComment.delete({ where: { id } });
+  }
 }

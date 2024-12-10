@@ -5,7 +5,7 @@ import { TaskCommentByIdPipe } from '../api/pipes/TaskCommentById.pipe';
 import { TaskCommentBodyPipe } from '../api/pipes/TaskCommentBody.pipe';
 
 @Module({
-    controllers: [TaskCommentController],
-    providers: [TaskCommentService, TaskCommentByIdPipe, TaskCommentBodyPipe],
+  controllers: [TaskCommentController],
+  providers: [TaskCommentService, TaskCommentByIdPipe, TaskCommentBodyPipe],
 })
 export class TaskCommentModule {}

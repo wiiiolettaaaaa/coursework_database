@@ -5,7 +5,11 @@ import { ProjectMemberRoleByIdPipe } from '../api/pipes/ProjectMemberRoleById.pi
 import { ProjectMemberRoleBodyPipe } from '../api/pipes/ProjectMemberRoleBody.pipe';
 
 @Module({
-    controllers: [ProjectMemberRoleController],
-    providers: [ProjectMemberRoleService, ProjectMemberRoleByIdPipe, ProjectMemberRoleBodyPipe],
+  controllers: [ProjectMemberRoleController],
+  providers: [
+    ProjectMemberRoleService,
+    ProjectMemberRoleByIdPipe,
+    ProjectMemberRoleBodyPipe,
+  ],
 })
 export class ProjectMemberRoleModule {}
