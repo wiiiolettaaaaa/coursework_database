@@ -560,16 +560,21 @@ export class ProjectMemberRoleController {
     @ApiOkResponse({ description: 'Project member role created successfully' })
     @ApiBadRequestResponse({ description: 'Invalid request data' })
     @Post()
-    create(@Body() body: CreateProjectMemberRoleDto) {
+    create(@Body(ProjectMemberRoleBodyPipe) body: CreateProjectMemberRoleDto) {
         return this.projectMemberRoleService.create(body);
     }
 
     @ApiOperation({ summary: 'Update project member role by ID' })
     @ApiOkResponse({ description: 'Project member role updated successfully' })
-    @ApiBadRequestResponse({ description: 'Invalid request data or project member role not found' })
+    @ApiBadRequestResponse({
+        description: 'Invalid request data or project member role not found',
+    })
     @ApiParam({ name: 'id', description: 'ID of the project member role' })
     @Patch('/:id')
-    update(@Param('id', ProjectMemberRoleByIdPipe) id: string, @Body() body: UpdateProjectMemberRoleDto) {
+    update(
+        @Param('id', ProjectMemberRoleByIdPipe) id: string,
+        @Body(ProjectMemberRoleBodyPipe) body: UpdateProjectMemberRoleDto,
+    ) {
         return this.projectMemberRoleService.updateById(id, body);
     }
 
@@ -638,23 +643,26 @@ export class ProjectMemberRoleByIdPipe implements PipeTransform {
 import { Injectable, PipeTransform } from '@nestjs/common';
 import { InvalidEntityIdException } from '../../exceptions/InvalidEntityID.exception';
 import { PrismaService } from '../../database/prisma.service';
-import { UpdateTaskCommentDto } from '../dtos/UpdateTaskComment.dto';
+import { UpdateProjectMemberRoleDto } from '../dtos/UpdateProjectMemberRole.dto';
 
 @Injectable()
-export class TaskCommentBodyPipe implements PipeTransform {
+export class ProjectMemberRoleBodyPipe implements PipeTransform {
     constructor(private readonly prisma: PrismaService) {}
 
-    async transform(body: UpdateTaskCommentDto): Promise<any> {
-        const user = await this.prisma.task.findUnique({
-            where: { id: body.taskId },
-        });
-        if (!user) throw new InvalidEntityIdException('Task');
+    async transform(body: UpdateProjectMemberRoleDto): Promise<any> {
+        if (body.roleId) {
+            const user = await this.prisma.role.findUnique({
+                where: { id: body.roleId },
+            });
+            if (!user) throw new InvalidEntityIdException('Role');
+        }
 
-        const project = await this.prisma.projectMember.findUnique({
-            where: { id: body.projectMemberId },
-        });
-        if (!project) throw new InvalidEntityIdException('ProjectMember');
-
+        if (body.roleId) {
+            const project = await this.prisma.projectMember.findUnique({
+                where: { id: body.projectMemberId },
+            });
+            if (!project) throw new InvalidEntityIdException('ProjectMember');
+        }
         return body;
     }
 }
@@ -743,16 +751,21 @@ export class TaskCommentController {
     @ApiOkResponse({ description: 'Task comment created successfully' })
     @ApiBadRequestResponse({ description: 'Invalid request data' })
     @Post()
-    create(@Body() body: CreateTaskCommentDto) {
+    create(@Body(TaskCommentBodyPipe) body: CreateTaskCommentDto) {
         return this.taskCommentService.create(body);
     }
 
     @ApiOperation({ summary: 'Update task comment by ID' })
     @ApiOkResponse({ description: 'Task comment updated successfully' })
-    @ApiBadRequestResponse({ description: 'Invalid request data or task comment not found' })
+    @ApiBadRequestResponse({
+        description: 'Invalid request data or task comment not found',
+    })
     @ApiParam({ name: 'id', description: 'ID of the task comment' })
     @Patch('/:id')
-    update(@Param('id', TaskCommentByIdPipe) id: string, @Body() body: UpdateTaskCommentDto) {
+    update(
+        @Param('id', TaskCommentByIdPipe) id: string,
+        @Body(TaskCommentBodyPipe) body: UpdateTaskCommentDto,
+    ) {
         return this.taskCommentService.updateById(id, body);
     }
 
@@ -828,19 +841,22 @@ export class TaskCommentBodyPipe implements PipeTransform {
     constructor(private readonly prisma: PrismaService) {}
 
     async transform(body: UpdateTaskCommentDto): Promise<any> {
-        const user = await this.prisma.task.findUnique({
-            where: { id: body.taskId },
-        });
-        if (!user) throw new InvalidEntityIdException('Task');
-
-        const project = await this.prisma.projectMember.findUnique({
-            where: { id: body.projectMemberId },
-        });
-        if (!project) throw new InvalidEntityIdException('ProjectMember');
-
+        if (body.taskId) {
+            const user = await this.prisma.task.findUnique({
+                where: { id: body.taskId },
+            });
+            if (!user) throw new InvalidEntityIdException('Task');
+        }
+        if (body.projectMemberId) {
+            const project = await this.prisma.projectMember.findUnique({
+                where: { id: body.projectMemberId },
+            });
+            if (!project) throw new InvalidEntityIdException('ProjectMember');
+        }
         return body;
     }
 }
+
 ```
 #### DTO для створення
 ```typescript
