@@ -4,28 +4,6 @@
 
 ![](media/start.jpeg)
 
-## TaskComment
-
-### POST /TaskComment
-
-![](media/TaskComment/post/post.jpeg)
-
-### GET /TaskComment
-
-![](media/TaskComment/get/getAll1.jpeg)
-
-### GET /TaskComment/:id
-
-![](media/TaskComment/get/getID.jpeg)
-
-### PATCH /TaskComment/:id
-
-![](media/TaskComment/patch/patch.jpeg)
-
-### DELETE /TaskComment/:id
-
-![](media/TaskComment/delete/delete.jpeg)
-
 ## ProjectMemberRole
 
 ### POST /ProjectMemberRole
@@ -47,3 +25,25 @@
 ### DELETE /ProjectMemberRole/:id
 
 ![](media/ProjectMemberRole/delete/delete.jpeg)
+
+## TaskComment
+
+### POST /TaskComment
+
+![](media/TaskComment/post/post.jpeg)
+
+### GET /TaskComment
+
+![](media/TaskComment/get/getAll1.jpeg)
+
+### GET /TaskComment/:id
+
+![](media/TaskComment/get/getID.jpeg)
+
+### PATCH /TaskComment/:id
+
+![](media/TaskComment/patch/patch.jpeg)
+
+### DELETE /TaskComment/:id
+
+![](media/TaskComment/delete/delete.jpeg)
