@@ -6,13 +6,13 @@
 
 ## ProjectMemberRole
 
-### POST /ProjectMemberRole
-
-![](media/ProjectMemberRole/post/post.jpeg)
-
 ### GET /ProjectMemberRole
 
 ![](media/ProjectMemberRole/get/getAll.jpeg)
+
+### POST /ProjectMemberRole
+
+![](media/ProjectMemberRole/post/post.jpeg)
 
 ### GET /ProjectMemberRole/:id
 
@@ -26,16 +26,15 @@
 
 ![](media/ProjectMemberRole/delete/delete.jpeg)
 
-
 ## TaskComment
-
-### POST /TaskComment
-
-![](media/TaskComment/post/post.jpeg)
 
 ### GET /TaskComment
 
 ![](media/TaskComment/get/getAll1.jpeg)
+
+### POST /TaskComment
+
+![](media/TaskComment/post/post.jpeg)
 
 ### GET /TaskComment/:id
 
