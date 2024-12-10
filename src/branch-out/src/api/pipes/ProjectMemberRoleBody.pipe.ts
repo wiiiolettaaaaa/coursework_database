@@ -8,16 +8,19 @@ export class ProjectMemberRoleBodyPipe implements PipeTransform {
   constructor(private readonly prisma: PrismaService) {}
 
   async transform(body: UpdateProjectMemberRoleDto): Promise<any> {
-    const user = await this.prisma.role.findUnique({
-      where: { id: body.roleId },
-    });
-    if (!user) throw new InvalidEntityIdException('Role');
+    if (body.roleId) {
+      const user = await this.prisma.role.findUnique({
+        where: { id: body.roleId },
+      });
+      if (!user) throw new InvalidEntityIdException('Role');
+    }
 
-    const project = await this.prisma.projectMember.findUnique({
-      where: { id: body.projectMemberId },
-    });
-    if (!project) throw new InvalidEntityIdException('ProjectMember');
-
+    if (body.roleId) {
+      const project = await this.prisma.projectMember.findUnique({
+        where: { id: body.projectMemberId },
+      });
+      if (!project) throw new InvalidEntityIdException('ProjectMember');
+    }
     return body;
   }
 }

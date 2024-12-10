@@ -18,6 +18,7 @@ import { TaskCommentService } from '../services/TaskComment.service';
 import { TaskCommentByIdPipe } from '../pipes/TaskCommentById.pipe';
 import { CreateTaskCommentDto } from '../dtos/CreateTaskComment.dto';
 import { UpdateTaskCommentDto } from '../dtos/UpdateTaskComment.dto';
+import { TaskCommentBodyPipe } from '../pipes/TaskCommentBody.pipe';
 
 @ApiTags('TaskComment')
 @Controller('/task-comments')
@@ -44,7 +45,7 @@ export class TaskCommentController {
   @ApiOkResponse({ description: 'Task comment created successfully' })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
   @Post()
-  create(@Body() body: CreateTaskCommentDto) {
+  create(@Body(TaskCommentBodyPipe) body: CreateTaskCommentDto) {
     return this.taskCommentService.create(body);
   }
 
@@ -57,7 +58,7 @@ export class TaskCommentController {
   @Patch('/:id')
   update(
     @Param('id', TaskCommentByIdPipe) id: string,
-    @Body() body: UpdateTaskCommentDto,
+    @Body(TaskCommentBodyPipe) body: UpdateTaskCommentDto,
   ) {
     return this.taskCommentService.updateById(id, body);
   }

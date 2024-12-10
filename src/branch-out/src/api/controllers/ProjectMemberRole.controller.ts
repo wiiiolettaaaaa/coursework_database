@@ -18,6 +18,7 @@ import { ProjectMemberRoleService } from '../services/ProjectMemberRole.service'
 import { ProjectMemberRoleByIdPipe } from '../pipes/ProjectMemberRoleById.pipe';
 import { CreateProjectMemberRoleDto } from '../dtos/CreateProjectMemberRole.dto';
 import { UpdateProjectMemberRoleDto } from '../dtos/UpdateProjectMemberRole.dto';
+import { ProjectMemberRoleBodyPipe } from '../pipes/ProjectMemberRoleBody.pipe';
 
 @ApiTags('ProjectMemberRole')
 @Controller('/project-member-roles')
@@ -46,7 +47,7 @@ export class ProjectMemberRoleController {
   @ApiOkResponse({ description: 'Project member role created successfully' })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
   @Post()
-  create(@Body() body: CreateProjectMemberRoleDto) {
+  create(@Body(ProjectMemberRoleBodyPipe) body: CreateProjectMemberRoleDto) {
     return this.projectMemberRoleService.create(body);
   }
 
@@ -59,7 +60,7 @@ export class ProjectMemberRoleController {
   @Patch('/:id')
   update(
     @Param('id', ProjectMemberRoleByIdPipe) id: string,
-    @Body() body: UpdateProjectMemberRoleDto,
+    @Body(ProjectMemberRoleBodyPipe) body: UpdateProjectMemberRoleDto,
   ) {
     return this.projectMemberRoleService.updateById(id, body);
   }

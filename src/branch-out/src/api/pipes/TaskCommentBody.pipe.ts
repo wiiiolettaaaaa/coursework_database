@@ -8,16 +8,18 @@ export class TaskCommentBodyPipe implements PipeTransform {
   constructor(private readonly prisma: PrismaService) {}
 
   async transform(body: UpdateTaskCommentDto): Promise<any> {
-    const user = await this.prisma.task.findUnique({
-      where: { id: body.taskId },
-    });
-    if (!user) throw new InvalidEntityIdException('Task');
-
-    const project = await this.prisma.projectMember.findUnique({
-      where: { id: body.projectMemberId },
-    });
-    if (!project) throw new InvalidEntityIdException('ProjectMember');
-
+    if (body.taskId) {
+      const user = await this.prisma.task.findUnique({
+        where: { id: body.taskId },
+      });
+      if (!user) throw new InvalidEntityIdException('Task');
+    }
+    if (body.projectMemberId) {
+      const project = await this.prisma.projectMember.findUnique({
+        where: { id: body.projectMemberId },
+      });
+      if (!project) throw new InvalidEntityIdException('ProjectMember');
+    }
     return body;
   }
 }
