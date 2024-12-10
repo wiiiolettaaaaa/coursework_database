@@ -298,3 +298,606 @@ COMMIT;
 ```
 
 ## RESTfull сервіс для управління даними
+
+### Схема бази даних Prisma ORM
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id                       String                    @id @default(uuid())
+  status                   String                    @db.VarChar(255)
+  name                     String                    @db.VarChar(255)
+  description              String                    @db.MediumText
+  projectMembers           ProjectMember[]
+  tasks                    Task[]
+  connectToProjectRequests ConnectToProjectRequest[]
+  roles                    Role[]
+
+  @@map("project")
+}
+
+model ProjectMember {
+  id                 String              @id @default(uuid())
+  project            Project             @relation(fields: [projectId], references: [id])
+  projectId          String              @map("project_id")
+  user               User                @relation(fields: [userId], references: [id])
+  userId             String              @map("user_id")
+  assignments        Assignment[]
+  projectMemberRoles ProjectMemberRole[]
+  taskComments       TaskComment[]
+
+  @@map("project_member")
+}
+
+model Task {
+  id           String        @id @default(uuid())
+  name         String        @db.VarChar(255)
+  description  String        @db.MediumText
+  status       String        @db.VarChar(255)
+  deadline     DateTime?     @db.DateTime(0)
+  project      Project       @relation(fields: [projectId], references: [id])
+  projectId    String        @map("project_id")
+  assignments  Assignment[]
+  taskComments TaskComment[]
+
+  @@map("task")
+}
+
+model TaskComment {
+  id              String        @id @default(uuid())
+  text            String        @db.MediumText
+  task            Task          @relation(fields: [taskId], references: [id])
+  taskId          String        @map("task_id")
+  projectMember   ProjectMember @relation(fields: [projectMemberId], references: [id])
+  projectMemberId String        @map("project_member_id")
+
+  @@map("task_comment")
+}
+
+model User {
+  id                       String                    @id @default(uuid())
+  username                 String                    @db.VarChar(255)
+  password                 String                    @db.VarChar(255)
+  email                    String                    @db.VarChar(320)
+  firstName                String                    @map("first_name") @db.VarChar(255)
+  lastName                 String                    @map("last_name") @db.VarChar(255)
+  avatar                   String?                   @db.MediumText
+  blocked                  Boolean                   @default(dbgenerated("b'0'")) @db.Bit(1)
+  projectMembers           ProjectMember[]
+  supportRequests          SupportRequest[]
+  connectToProjectRequests ConnectToProjectRequest[]
+
+  @@map("user")
+}
+
+model Assignment {
+  id              String        @id @default(uuid())
+  task            Task          @relation(fields: [taskId], references: [id])
+  taskId          String        @map("task_id")
+  projectMember   ProjectMember @relation(fields: [projectMemberId], references: [id])
+  projectMemberId String        @map("project_member_id")
+
+  @@map("assignment")
+}
+
+model SupportRequest {
+  id                     String                 @id @default(uuid())
+  user                   User                   @relation(fields: [userId], references: [id])
+  userId                 String                 @map("user_id")
+  topic                  String                 @db.VarChar(255)
+  description            String                 @db.MediumText
+  supportRequestsAnswers SupportRequestAnswer[]
+
+  @@map("suport_request")
+}
+
+model SupportRequestAnswer {
+  id               String         @id @default(uuid())
+  feedback         String         @db.MediumText
+  supportRequest   SupportRequest @relation(fields: [supportRequestId], references: [id])
+  supportRequestId String         @map("support_request_id")
+
+  @@map("support_request_answer")
+}
+
+model ConnectToProjectRequest {
+  id        String  @id @default(uuid())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @map("user_id")
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String  @map("project_id")
+
+  @@map("connect_to_project_request")
+}
+
+model Role {
+  id                 String              @id @default(uuid())
+  name               String              @db.VarChar(255)
+  project            Project             @relation(fields: [projectId], references: [id])
+  projectId          String              @map("project_id")
+  projectMemberRoles ProjectMemberRole[]
+  grants             Grant[]
+
+  @@map("role")
+}
+
+model ProjectMemberRole {
+  id              String        @id @default(uuid())
+  role            Role          @relation(fields: [roleId], references: [id])
+  roleId          String        @map("role_id")
+  projectMember   ProjectMember @relation(fields: [projectMemberId], references: [id])
+  projectMemberId String        @map("project_member_id")
+
+  @@map("project_member_role")
+}
+
+model Grant {
+  id         String @id @default(uuid())
+  permission String @db.VarChar(255)
+  role       Role   @relation(fields: [roleId], references: [id])
+  roleId     String @map("role_id")
+
+  @@map("grant")
+}
+```
+### Головний файл програми 
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import * as process from 'node:process';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
+
+async function bootstrap () {
+  const port = process.env.PORT ?? 3000;
+
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe(
+      {
+        transform: true,
+        whitelist: true,
+      }
+  ));
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
+  const swaggerConfig = new DocumentBuilder()
+      .setTitle('BranchOut API')
+      .setDescription('API for project management')
+      .setVersion('1')
+      .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, document);
+
+  await app.listen(port, () => console.info(`Swagger: http://localhost:${port}/api`));
+}
+
+bootstrap();
+```
+
+### Головний модуль програми
+```typescript
+import { Module } from '@nestjs/common';
+import { ProjectMemberRoleModule } from './modules/ProjectMemberRole.module';
+import { TaskCommentModule } from './modules/TaskComment.module';
+import { PrismaModule } from './modules/prisma.module';
+
+@Module({
+  imports: [PrismaModule, ProjectMemberRoleModule, TaskCommentModule],
+})
+export class AppModule {}
+
+```
+### Підключення до бази даних
+#### Сервіс
+```typescript
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit {
+    async onModuleInit () {
+        await this.$connect();
+    }
+}
+```
+#### Модуль
+```typescript
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from '../database/prisma.service';
+
+@Global()
+@Module({
+    providers: [PrismaService],
+    exports: [PrismaService],
+})
+export class PrismaModule {}
+```
+### ProjectMemberRole
+
+#### Контролер
+```typescript
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiOkResponse, ApiBadRequestResponse, ApiParam } from '@nestjs/swagger';
+import { ProjectMemberRoleService } from '../services/ProjectMemberRole.service';
+import { ProjectMemberRoleByIdPipe } from '../pipes/ProjectMemberRoleById.pipe';
+import { CreateProjectMemberRoleDto } from '../dtos/CreateProjectMemberRole.dto';
+import { UpdateProjectMemberRoleDto } from '../dtos/UpdateProjectMemberRole.dto';
+
+@ApiTags('ProjectMemberRole')
+@Controller('/project-member-roles')
+export class ProjectMemberRoleController {
+    constructor(private readonly projectMemberRoleService: ProjectMemberRoleService) {}
+
+    @ApiOperation({ summary: 'Get all project member roles' })
+    @ApiOkResponse({ description: 'List of all project member roles' })
+    @Get()
+    getAll() {
+        return this.projectMemberRoleService.getAll();
+    }
+
+    @ApiOperation({ summary: 'Get project member role by ID' })
+    @ApiOkResponse({ description: 'Project member role details' })
+    @ApiBadRequestResponse({ description: 'Project member role not found' })
+    @ApiParam({ name: 'id', description: 'ID of the project member role' })
+    @Get('/:id')
+    get(@Param('id', ProjectMemberRoleByIdPipe) id: string) {
+        return this.projectMemberRoleService.getById(id);
+    }
+
+    @ApiOperation({ summary: 'Create a project member role' })
+    @ApiOkResponse({ description: 'Project member role created successfully' })
+    @ApiBadRequestResponse({ description: 'Invalid request data' })
+    @Post()
+    create(@Body() body: CreateProjectMemberRoleDto) {
+        return this.projectMemberRoleService.create(body);
+    }
+
+    @ApiOperation({ summary: 'Update project member role by ID' })
+    @ApiOkResponse({ description: 'Project member role updated successfully' })
+    @ApiBadRequestResponse({ description: 'Invalid request data or project member role not found' })
+    @ApiParam({ name: 'id', description: 'ID of the project member role' })
+    @Patch('/:id')
+    update(@Param('id', ProjectMemberRoleByIdPipe) id: string, @Body() body: UpdateProjectMemberRoleDto) {
+        return this.projectMemberRoleService.updateById(id, body);
+    }
+
+    @ApiOperation({ summary: 'Delete project member role by ID' })
+    @ApiOkResponse({ description: 'Project member role deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Project member role not found' })
+    @ApiParam({ name: 'id', description: 'ID of the project member role' })
+    @Delete('/:id')
+    delete(@Param('id', ProjectMemberRoleByIdPipe) id: string) {
+        return this.projectMemberRoleService.deleteById(id);
+    }
+}
+```
+#### Сервіс
+```typescript
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+import { CreateProjectMemberRoleDto } from '../dtos/CreateProjectMemberRole.dto';
+import { UpdateProjectMemberRoleDto } from '../dtos/UpdateProjectMemberRole.dto';
+
+@Injectable()
+export class ProjectMemberRoleService {
+    constructor(private readonly prisma: PrismaService) {}
+
+    getAll() {
+        return this.prisma.projectMemberRole.findMany();
+    }
+
+    getById(id: string) {
+        return this.prisma.projectMemberRole.findUnique({ where: { id } });
+    }
+
+    create(data: CreateProjectMemberRoleDto) {
+        return this.prisma.projectMemberRole.create({ data });
+    }
+
+    updateById(id: string, data: UpdateProjectMemberRoleDto) {
+        return this.prisma.projectMemberRole.update({ where: { id }, data });
+    }
+
+    deleteById(id: string) {
+        return this.prisma.projectMemberRole.delete({ where: { id } });
+    }
+}
+```
+#### Пайп для валідації id
+```typescript
+import { Injectable, PipeTransform } from '@nestjs/common';
+import { ProjectMemberRoleService } from '../services/ProjectMemberRole.service';
+import { NotFoundException } from '@nestjs/common';
+
+@Injectable()
+export class ProjectMemberRoleByIdPipe implements PipeTransform {
+    constructor(private readonly projectMemberRoleService: ProjectMemberRoleService) {}
+
+    async transform(id: string): Promise<string> {
+        const role = await this.projectMemberRoleService.getById(id);
+        if (!role) {
+            throw new NotFoundException('ProjectMemberRole not found');
+        }
+        return role.id;
+    }
+}
+```
+```typescript
+import { Injectable, PipeTransform } from '@nestjs/common';
+import { InvalidEntityIdException } from '../../exceptions/InvalidEntityID.exception';
+import { PrismaService } from '../../database/prisma.service';
+import { UpdateTaskCommentDto } from '../dtos/UpdateTaskComment.dto';
+
+@Injectable()
+export class TaskCommentBodyPipe implements PipeTransform {
+    constructor(private readonly prisma: PrismaService) {}
+
+    async transform(body: UpdateTaskCommentDto): Promise<any> {
+        const user = await this.prisma.task.findUnique({
+            where: { id: body.taskId },
+        });
+        if (!user) throw new InvalidEntityIdException('Task');
+
+        const project = await this.prisma.projectMember.findUnique({
+            where: { id: body.projectMemberId },
+        });
+        if (!project) throw new InvalidEntityIdException('ProjectMember');
+
+        return body;
+    }
+}
+```
+#### DTO для створення
+```typescript
+import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class CreateProjectMemberRoleDto {
+    @ApiProperty({ description: 'RoleId of the project member role' })
+    @IsNotEmpty({ message: 'RoleId name cannot be empty' })
+    @IsString({ message: 'RoleId name must be a string' })
+    roleId: string;
+
+    @ApiProperty({ description: 'ProjectMemberId of the project member role' })
+    @IsNotEmpty({ message: 'ProjectMemberId  cannot be empty' })
+    @IsString({ message: 'ProjectMemberId  must be a string' })
+    projectMemberId : string;
+}
+```
+#### DTO для оновлення
+```typescript
+import { IsOptional, IsString } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+
+export class UpdateProjectMemberRoleDto {
+    @ApiPropertyOptional({ description: 'Updated Role of the project member role' })
+    @IsOptional()
+    @IsString({ message: 'Role name must be a string' })
+    roleId?: string;
+
+    @ApiPropertyOptional({ description: 'Updated ProjectMember of the project member role' })
+    @IsOptional()
+    @IsString({ message: 'ProjectMember must be a string' })
+    projectMemberId?: string;
+}
+```
+#### Модуль
+```typescript
+import { Module } from '@nestjs/common';
+import { ProjectMemberRoleController } from '../api/controllers/ProjectMemberRole.controller';
+import { ProjectMemberRoleService } from '../api/services/ProjectMemberRole.service';
+import { ProjectMemberRoleByIdPipe } from '../api/pipes/ProjectMemberRoleById.pipe';
+import { ProjectMemberRoleBodyPipe } from '../api/pipes/ProjectMemberRoleBody.pipe';
+
+@Module({
+    controllers: [ProjectMemberRoleController],
+    providers: [ProjectMemberRoleService, ProjectMemberRoleByIdPipe, ProjectMemberRoleBodyPipe],
+})
+export class ProjectMemberRoleModule {}
+```
+### TaskComment
+
+#### Контролер
+```typescript
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiOkResponse, ApiBadRequestResponse, ApiParam } from '@nestjs/swagger';
+import { TaskCommentService } from '../services/TaskComment.service';
+import { TaskCommentByIdPipe } from '../pipes/TaskCommentById.pipe';
+import { CreateTaskCommentDto } from '../dtos/CreateTaskComment.dto';
+import { UpdateTaskCommentDto } from '../dtos/UpdateTaskComment.dto';
+
+@ApiTags('TaskComment')
+@Controller('/task-comments')
+export class TaskCommentController {
+    constructor(private readonly taskCommentService: TaskCommentService) {}
+
+    @ApiOperation({ summary: 'Get all task comments' })
+    @ApiOkResponse({ description: 'List of all task comments' })
+    @Get()
+    getAll() {
+        return this.taskCommentService.getAll();
+    }
+
+    @ApiOperation({ summary: 'Get task comment by ID' })
+    @ApiOkResponse({ description: 'Task comment details' })
+    @ApiBadRequestResponse({ description: 'Task comment not found' })
+    @ApiParam({ name: 'id', description: 'ID of the task comment' })
+    @Get('/:id')
+    get(@Param('id', TaskCommentByIdPipe) id: string) {
+        return this.taskCommentService.getById(id);
+    }
+
+    @ApiOperation({ summary: 'Create a task comment' })
+    @ApiOkResponse({ description: 'Task comment created successfully' })
+    @ApiBadRequestResponse({ description: 'Invalid request data' })
+    @Post()
+    create(@Body() body: CreateTaskCommentDto) {
+        return this.taskCommentService.create(body);
+    }
+
+    @ApiOperation({ summary: 'Update task comment by ID' })
+    @ApiOkResponse({ description: 'Task comment updated successfully' })
+    @ApiBadRequestResponse({ description: 'Invalid request data or task comment not found' })
+    @ApiParam({ name: 'id', description: 'ID of the task comment' })
+    @Patch('/:id')
+    update(@Param('id', TaskCommentByIdPipe) id: string, @Body() body: UpdateTaskCommentDto) {
+        return this.taskCommentService.updateById(id, body);
+    }
+
+    @ApiOperation({ summary: 'Delete task comment by ID' })
+    @ApiOkResponse({ description: 'Task comment deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Task comment not found' })
+    @ApiParam({ name: 'id', description: 'ID of the task comment' })
+    @Delete('/:id')
+    delete(@Param('id', TaskCommentByIdPipe) id: string) {
+        return this.taskCommentService.deleteById(id);
+    }
+}
+```
+#### Сервіс
+```typescript
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+import { CreateTaskCommentDto } from '../dtos/CreateTaskComment.dto';
+import { UpdateTaskCommentDto } from '../dtos/UpdateTaskComment.dto';
+
+@Injectable()
+export class TaskCommentService {
+    constructor(private readonly prisma: PrismaService) {}
+
+    getAll() {
+        return this.prisma.taskComment.findMany();
+    }
+
+    getById(id: string) {
+        return this.prisma.taskComment.findUnique({ where: { id } });
+    }
+
+    create(data: CreateTaskCommentDto) {
+        return this.prisma.taskComment.create({ data });
+    }
+
+    updateById(id: string, data: UpdateTaskCommentDto) {
+        return this.prisma.taskComment.update({ where: { id }, data });
+    }
+
+    deleteById(id: string) {
+        return this.prisma.taskComment.delete({ where: { id } });
+    }
+}
+```
+#### Пайп для валідації id
+```typescript
+import { Injectable, PipeTransform } from '@nestjs/common';
+import { TaskCommentService } from '../services/TaskComment.service';
+import { NotFoundException } from '@nestjs/common';
+
+@Injectable()
+export class TaskCommentByIdPipe implements PipeTransform {
+    constructor(private readonly taskCommentService: TaskCommentService) {}
+
+    async transform(id: string): Promise<string> {
+        const taskComment = await this.taskCommentService.getById(id);
+        if (!taskComment) {
+            throw new NotFoundException('TaskComment not found');
+        }
+        return taskComment.id;
+    }
+}
+```
+```typescript
+import { Injectable, PipeTransform } from '@nestjs/common';
+import { InvalidEntityIdException } from '../../exceptions/InvalidEntityID.exception';
+import { PrismaService } from '../../database/prisma.service';
+import { UpdateTaskCommentDto } from '../dtos/UpdateTaskComment.dto';
+
+@Injectable()
+export class TaskCommentBodyPipe implements PipeTransform {
+    constructor(private readonly prisma: PrismaService) {}
+
+    async transform(body: UpdateTaskCommentDto): Promise<any> {
+        const user = await this.prisma.task.findUnique({
+            where: { id: body.taskId },
+        });
+        if (!user) throw new InvalidEntityIdException('Task');
+
+        const project = await this.prisma.projectMember.findUnique({
+            where: { id: body.projectMemberId },
+        });
+        if (!project) throw new InvalidEntityIdException('ProjectMember');
+
+        return body;
+    }
+}
+```
+#### DTO для створення
+```typescript
+import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class CreateTaskCommentDto {
+    @ApiProperty({ description: 'Text of the task comment' })
+    @IsNotEmpty({ message: 'Text cannot be empty' })
+    @IsString({ message: 'Text must be a string' })
+    text: string;
+
+    @ApiProperty({ description: 'Task ID' })
+    @IsNotEmpty({ message: 'Task ID cannot be empty' })
+    @IsString({ message: 'Task ID must be a string' })
+    taskId: string;
+
+    @ApiProperty({ description: 'Project Member ID' })
+    @IsNotEmpty({ message: 'Project Member ID cannot be empty' })
+    @IsString({ message: 'Project Member ID must be a string' })
+    projectMemberId: string;
+}
+```
+#### DTO для оновлення
+```typescript
+import { IsOptional, IsString } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+
+export class UpdateTaskCommentDto {
+    @ApiPropertyOptional({ description: 'Updated text of the task comment' })
+    @IsOptional()
+    @IsString({ message: 'Text must be a string' })
+    text?: string;
+
+    @ApiPropertyOptional({ description: 'Updated task of the task comment' })
+    @IsOptional()
+    @IsString({ message: 'Task must be a string' })
+    taskId?: string;
+
+    @ApiPropertyOptional({ description: 'Updated ProjectMember of the task comment' })
+    @IsOptional()
+    @IsString({ message: 'ProjectMember must be a string' })
+    projectMemberId?: string;
+}
+```
+#### Модуль
+```typescript
+import { Module } from '@nestjs/common';
+import { TaskCommentController } from '../api/controllers/TaskComment.controller';
+import { TaskCommentService } from '../api/services/TaskComment.service';
+import { TaskCommentByIdPipe } from '../api/pipes/TaskCommentById.pipe';
+import { TaskCommentBodyPipe } from '../api/pipes/TaskCommentBody.pipe';
+
+@Module({
+    controllers: [TaskCommentController],
+    providers: [TaskCommentService, TaskCommentByIdPipe, TaskCommentBodyPipe],
+})
+export class TaskCommentModule {}
+```
+
